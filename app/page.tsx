@@ -50,6 +50,7 @@ export default function LandingPage() {
     }
     return null
   })
+  const [hasSearched, setHasSearched] = useState(false)
 
   const handleAuthSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -79,6 +80,7 @@ export default function LandingPage() {
 
     setIsLoading(true)
     setError(null)
+    setHasSearched(true)
     
     if (e) {
       setLastSearchQuery(searchQuery)
@@ -284,7 +286,7 @@ export default function LandingPage() {
                 </div>
               )}
 
-              {searchResults.length === 0 && !isLoading && !error && (
+              {searchResults.length === 0 && !isLoading && !error && hasSearched && (
                 <div className="mt-8 p-6 border border-muted bg-muted/5 rounded-lg text-center">
                   <AlertCircle className="h-8 w-8 mx-auto text-muted-foreground" />
                   <h3 className="mt-4 font-medium">No results found</h3>
