@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Search, AlertCircle, XCircle, Copy, CheckCircle2 } from "lucide-react"
+import { Search, AlertCircle, XCircle, Copy, CheckCircle2, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
@@ -16,6 +16,7 @@ interface SearchResult {
   height?: number;
   description?: string | null;
   thumb_url: string;
+  permalink_url: string;
   tags: Array<{
     name: string;
     sub_type: string;
@@ -122,6 +123,44 @@ export default function LandingPage() {
       setIsLoading(false)
     }
   }
+
+  const handleDownload = async (result: SearchResult) => {
+    if (!auth) return;
+    
+    try {
+      // Get the file directly from the API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_MEDIAGRAPH_API_URL}/assets/${result.id}/download`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${btoa(':' + auth.token)}`,
+          'OrganizationId': auth.organizationId
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link and click it to start the download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = result.filename;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to download file');
+    }
+  };
 
   if (!auth) {
     return (
@@ -312,6 +351,15 @@ export default function LandingPage() {
                                     <CheckCircle2 className="h-4 w-4 text-green-600" /> : 
                                     <Copy className="h-4 w-4" />
                                   }
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handleDownload(result)}
+                                  title="Download Original File"
+                                >
+                                  <Download className="h-4 w-4" />
                                 </Button>
                               </div>
                             </div>
